@@ -1,0 +1,63 @@
+{
+  "name": "@jsgorana/node-red-opcua",
+  "version": "0.1.0",
+  "description": "Lean, modern OPC-UA client and server nodes for Node-RED 5.0 — read, write, browse, subscribe, and expose Node-RED data as an OPC UA server.",
+  "keywords": [
+    "node-red",
+    "opcua",
+    "opc-ua",
+    "iiot",
+    "industrial",
+    "automation",
+    "scada"
+  ],
+  "license": "MIT",
+  "author": "jsgorana <jsgorana@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsgorana/node-red-opcua.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jsgorana/node-red-opcua/issues"
+  },
+  "homepage": "https://github.com/jsgorana/node-red-opcua#readme",
+  "engines": {
+    "node": ">=22.9.0"
+  },
+  "node-red": {
+    "version": ">=4.0.0",
+    "nodes": {
+      "opcua-endpoint": "nodes/opcua-endpoint.js",
+      "opcua-read": "nodes/opcua-read.js",
+      "opcua-write": "nodes/opcua-write.js",
+      "opcua-browse": "nodes/opcua-browse.js",
+      "opcua-subscribe": "nodes/opcua-subscribe.js",
+      "opcua-server": "nodes/opcua-server.js"
+    }
+  },
+  "scripts": {
+    "test": "mocha \"test/**/*_spec.js\" --timeout 20000",
+    "lint": "eslint nodes test"
+  },
+  "dependencies": {
+    "node-opcua": "^2.173.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "mocha": "^10.7.0",
+    "node-red": "^5.0.0",
+    "node-red-node-test-helper": "^0.3.4",
+    "should": "^13.2.3"
+  },
+  "files": [
+    "nodes",
+    "examples",
+    "docs/assets",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "LICENSE"
+  ]
+}

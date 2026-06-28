@@ -1,0 +1,122 @@
+<script type="text/javascript">
+    RED.nodes.registerType("opcua-endpoint", {
+        category: "config",
+        defaults: {
+            name: { value: "" },
+            endpointUrl: { value: "opc.tcp://localhost:4840", required: true },
+            securityMode: { value: "None", required: true },
+            securityPolicy: { value: "None", required: true },
+            authType: { value: "anonymous", required: true },
+            timeout: { value: 10000, validate: RED.validators.number() },
+            acceptUntrusted: { value: false }
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" }
+        },
+        label: function () {
+            return this.name || this.endpointUrl || "opcua-endpoint";
+        },
+        oneditprepare: function () {
+            const toggleAuth = function () {
+                const t = $("#node-config-input-authType").val();
+                $(".opcua-auth-credentials").toggle(t === "username");
+            };
+            $("#node-config-input-authType").on("change", toggleAuth);
+            toggleAuth();
+
+            const toggleSecure = function () {
+                const secure = $("#node-config-input-securityMode").val() !== "None";
+                $(".opcua-secure-only").toggle(secure);
+            };
+            $("#node-config-input-securityMode").on("change", toggleSecure);
+            toggleSecure();
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="opcua-endpoint">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-endpointUrl"><i class="fa fa-globe"></i> Endpoint</label>
+        <input type="text" id="node-config-input-endpointUrl" placeholder="opc.tcp://localhost:4840">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-securityMode"><i class="fa fa-lock"></i> Security Mode</label>
+        <select id="node-config-input-securityMode">
+            <option value="None">None</option>
+            <option value="Sign">Sign</option>
+            <option value="SignAndEncrypt">SignAndEncrypt</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-securityPolicy"><i class="fa fa-shield"></i> Security Policy</label>
+        <select id="node-config-input-securityPolicy">
+            <option value="None">None</option>
+            <option value="Basic256Sha256">Basic256Sha256</option>
+            <option value="Aes128_Sha256_RsaOaep">Aes128_Sha256_RsaOaep</option>
+            <option value="Aes256_Sha256_RsaPss">Aes256_Sha256_RsaPss</option>
+            <option value="Basic256">Basic256 (legacy)</option>
+            <option value="Basic128Rsa15">Basic128Rsa15 (legacy)</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-authType"><i class="fa fa-user"></i> Authentication</label>
+        <select id="node-config-input-authType">
+            <option value="anonymous">Anonymous</option>
+            <option value="username">Username / Password</option>
+        </select>
+    </div>
+    <div class="form-row opcua-auth-credentials">
+        <label for="node-config-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-config-input-username">
+    </div>
+    <div class="form-row opcua-auth-credentials">
+        <label for="node-config-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="password" id="node-config-input-password">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-timeout"><i class="fa fa-clock-o"></i> Op timeout</label>
+        <input type="number" id="node-config-input-timeout" placeholder="10000" style="width:120px"> ms
+    </div>
+    <div class="form-row opcua-secure-only">
+        <label for="node-config-input-acceptUntrusted" style="width:auto"><i class="fa fa-exclamation-triangle"></i> Accept untrusted server cert</label>
+        <input type="checkbox" id="node-config-input-acceptUntrusted" style="display:inline-block;width:auto;vertical-align:top">
+        <span style="color:#a00"> dev only — disables server-certificate validation</span>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="opcua-endpoint">
+    <p>Defines an OPC-UA server endpoint and the shared connection used by the
+    OPC-UA read, write, browse and subscribe nodes.</p>
+    <h3>Settings</h3>
+    <dl class="message-properties">
+        <dt>Endpoint</dt><dd>The server URL, e.g. <code>opc.tcp://localhost:4840</code>.</dd>
+        <dt>Security Mode</dt><dd>None, Sign, or SignAndEncrypt.</dd>
+        <dt>Security Policy</dt><dd>The cryptographic policy to negotiate.</dd>
+        <dt>Authentication</dt><dd>Anonymous, or username/password.</dd>
+        <dt>Op timeout</dt><dd>Max time (ms) a read/write/browse waits before failing
+        fast when the server is unreachable. 0 disables. Subscriptions are not
+        affected — they keep retrying in the background. Default 10000.</dd>
+    </dl>
+
+    <h3>Security &amp; certificates</h3>
+    <p>For <b>Sign</b> or <b>SignAndEncrypt</b>, the client uses an application
+    certificate stored under <code>&lt;userDir&gt;/opcua-pki</code>. On first connect
+    the server certificate is validated against that trust store:</p>
+    <ul>
+        <li><b>Trusted by default:</b> an unknown server certificate is rejected and
+        placed in <code>opcua-pki/rejected</code>. Move it to
+        <code>opcua-pki/trusted/certs</code> to trust it.</li>
+        <li><b>Accept untrusted server cert</b> disables this validation. It is for
+        development only and must be off in production.</li>
+        <li>The client's own certificate (<code>opcua-pki/own/certs</code>) usually
+        needs to be trusted on the server too.</li>
+    </ul>
+    <p>Prefer <b>Basic256Sha256</b> or the <b>Aes*</b> policies. <b>Basic128Rsa15</b>
+    and <b>Basic256</b> are deprecated. Use <b>SignAndEncrypt</b> when sending
+    credentials.</p>
+</script>

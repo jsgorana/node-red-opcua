@@ -1,0 +1,191 @@
+<script type="text/javascript">
+    RED.nodes.registerType("opcua-server", {
+        category: "OPC-UA",
+        color: "#4a90d9",
+        defaults: {
+            name: { value: "" },
+            port: { value: 4840, required: true, validate: RED.validators.number() },
+            resourcePath: { value: "/UA/NodeRED" },
+            serverName: { value: "Node-RED OPC-UA Server" },
+            folderName: { value: "NodeRED" },
+            allowAnonymous: { value: true },
+            securityNone: { value: true },
+            securitySign: { value: false },
+            securitySignEncrypt: { value: false },
+            acceptUntrusted: { value: false },
+            variables: { value: [] }
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "font-awesome/fa-server",
+        paletteLabel: "opcua server",
+        label: function () {
+            return this.name || "opcua-server :" + (this.port || 4840);
+        },
+        oneditprepare: function () {
+            const toggleSecure = function () {
+                const secure = $("#node-input-securitySign").is(":checked") ||
+                    $("#node-input-securitySignEncrypt").is(":checked");
+                $(".opcua-server-secure-only").toggle(secure);
+            };
+            $("#node-input-securitySign, #node-input-securitySignEncrypt").on("change", toggleSecure);
+            toggleSecure();
+            const list = $("#node-input-variable-list").css("min-height", "180px").editableList({
+                addButton: true,
+                header: $("<div>").css({ "padding-left": "32px" }).append(
+                    $.parseHTML(
+                        "<div style='display:inline-grid;grid-template-columns:120px 110px auto;gap:6px;width:90%'>" +
+                        "<b>Name</b><b>Data Type</b><b>Initial Value</b></div>"
+                    )
+                ),
+                addItem: function (container, i, data) {
+                    container.css({ overflow: "hidden", whiteSpace: "nowrap" });
+                    const row = $("<div/>", {
+                        style: "display:inline-grid;grid-template-columns:120px 110px auto;gap:6px;width:90%"
+                    }).appendTo(container);
+
+                    const name = $("<input/>", { class: "v-name", type: "text", placeholder: "Temperature" }).appendTo(row);
+                    const type = $("<select/>", { class: "v-type" }).appendTo(row);
+                    ["Boolean", "SByte", "Byte", "Int16", "UInt16", "Int32", "UInt32", "Float", "Double", "String", "DateTime"]
+                        .forEach((t) => type.append($("<option/>").val(t).text(t)));
+                    const val = $("<input/>", { class: "v-value", type: "text", placeholder: "0" }).appendTo(row);
+
+                    name.val(data.name || "");
+                    type.val(data.dataType || "Double");
+                    val.val(data.value !== undefined ? data.value : "");
+                }
+            });
+
+            (this.variables || []).forEach((v) => list.editableList("addItem", v));
+        },
+        oneditsave: function () {
+            const vars = [];
+            $("#node-input-variable-list").editableList("items").each(function () {
+                const r = $(this);
+                const name = r.find(".v-name").val();
+                if (!name) return;
+                vars.push({
+                    name: name,
+                    dataType: r.find(".v-type").val(),
+                    value: r.find(".v-value").val()
+                });
+            });
+            this.variables = vars;
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="opcua-server">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-port"><i class="fa fa-plug"></i> Port</label>
+        <input type="number" id="node-input-port" placeholder="4840" style="width:120px">
+    </div>
+    <div class="form-row">
+        <label for="node-input-resourcePath"><i class="fa fa-link"></i> Path</label>
+        <input type="text" id="node-input-resourcePath" placeholder="/UA/NodeRED">
+    </div>
+    <div class="form-row">
+        <label for="node-input-serverName"><i class="fa fa-info-circle"></i> Server</label>
+        <input type="text" id="node-input-serverName" placeholder="Node-RED OPC-UA Server">
+    </div>
+    <div class="form-row">
+        <label for="node-input-folderName"><i class="fa fa-folder"></i> Folder</label>
+        <input type="text" id="node-input-folderName" placeholder="NodeRED">
+    </div>
+    <hr>
+    <div class="form-row" style="margin-bottom:4px">
+        <label><i class="fa fa-lock"></i> Security</label>
+        <span style="color:#888">endpoints this server offers</span>
+    </div>
+    <div class="form-row" style="margin-left:104px">
+        <label for="node-input-securityNone" style="width:auto"><input type="checkbox" id="node-input-securityNone" style="width:auto;vertical-align:top"> None <span style="color:#a00">(insecure)</span></label>
+    </div>
+    <div class="form-row" style="margin-left:104px">
+        <label for="node-input-securitySign" style="width:auto"><input type="checkbox" id="node-input-securitySign" style="width:auto;vertical-align:top"> Sign (Basic256Sha256)</label>
+    </div>
+    <div class="form-row" style="margin-left:104px">
+        <label for="node-input-securitySignEncrypt" style="width:auto"><input type="checkbox" id="node-input-securitySignEncrypt" style="width:auto;vertical-align:top"> SignAndEncrypt (Basic256Sha256)</label>
+    </div>
+    <div class="form-row opcua-server-secure-only" style="margin-left:104px">
+        <label for="node-input-acceptUntrusted" style="width:auto"><input type="checkbox" id="node-input-acceptUntrusted" style="width:auto;vertical-align:top"> Accept untrusted client certs <span style="color:#a00">(dev only)</span></label>
+    </div>
+    <div class="form-row" style="margin-bottom:4px">
+        <label><i class="fa fa-user"></i> Authentication</label>
+    </div>
+    <div class="form-row" style="margin-left:104px">
+        <label for="node-input-allowAnonymous" style="width:auto"><input type="checkbox" id="node-input-allowAnonymous" style="width:auto;vertical-align:top"> Allow anonymous</label>
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="(optional) require this user">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="password" id="node-input-password">
+    </div>
+    <hr>
+    <div class="form-row" style="margin-bottom:0">
+        <label><i class="fa fa-list"></i> Variables</label>
+    </div>
+    <div class="form-row">
+        <ol id="node-input-variable-list"></ol>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="opcua-server">
+    <p>Runs an OPC-UA <b>server</b> that exposes Node-RED data to OPC-UA clients
+    (SCADA, MES, other Node-RED instances, etc.). Variables live under
+    <code>ns=1;s=&lt;Name&gt;</code> inside the configured folder.</p>
+
+    <h3>Define variables</h3>
+    <p>Add the variables to expose in the node config (Name, Data Type, Initial
+    Value). They are created when the server starts.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>The variable name to update (e.g. <code>Temperature</code>).</dd>
+        <dt>payload</dt>
+        <dd>The new value clients will read / be notified of.</dd>
+        <dt class="optional">dataType <span class="property-type">string</span></dt>
+        <dd>Used only when creating a brand-new variable on the fly (default Double).</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <p>A message is emitted whenever a <b>client writes</b> one of the variables:</p>
+    <dl class="message-properties">
+        <dt>topic <span class="property-type">string</span></dt><dd>The variable name.</dd>
+        <dt>payload</dt><dd>The value the client wrote.</dd>
+        <dt>nodeId <span class="property-type">string</span></dt><dd>The variable Node ID.</dd>
+        <dt>source <span class="property-type">string</span></dt><dd>Always <code>"client"</code>.</dd>
+    </dl>
+
+    <h3>Connecting a client</h3>
+    <p>Point an <code>opcua-endpoint</code> at
+    <code>opc.tcp://&lt;host&gt;:&lt;port&gt;&lt;path&gt;</code>, e.g.
+    <code>opc.tcp://localhost:4840/UA/NodeRED</code>.</p>
+
+    <h3>Security &amp; authentication</h3>
+    <p><b>Security</b> selects which endpoints the server offers:</p>
+    <ul>
+        <li><b>None</b> — unencrypted. Convenient for local testing; insecure for production.</li>
+        <li><b>Sign</b> / <b>SignAndEncrypt</b> — Basic256Sha256. The server uses a
+        certificate under <code>&lt;userDir&gt;/opcua-pki/server</code>. Connecting clients
+        must be trusted: an unknown client certificate is rejected into
+        <code>opcua-pki/server/rejected</code> — move it to
+        <code>opcua-pki/server/trusted/certs</code>, or tick <b>Accept untrusted client
+        certs</b> for development only.</li>
+    </ul>
+    <p><b>Authentication</b>: leave <b>Allow anonymous</b> on for open access, and/or set a
+    <b>Username/Password</b> to require credentials (stored encrypted by Node-RED). Disabling
+    anonymous with no username configured blocks all clients. For production, require
+    SignAndEncrypt + username/password and disable None + anonymous.</p>
+</script>

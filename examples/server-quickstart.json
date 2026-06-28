@@ -1,0 +1,83 @@
+[
+    {
+        "id": "sq_tab",
+        "type": "tab",
+        "label": "OPC-UA · Server Quickstart",
+        "disabled": false,
+        "info": "# OPC-UA Server Quickstart\n\nExpose Node-RED data as an OPC-UA server that external clients (SCADA, MES,\nother Node-RED instances) can read, subscribe to, and write.\n\n## Setup\n1. The **opcua-server** node is preconfigured on port `4840`, path `/UA/NodeRED`,\n   with two variables: `Temperature` and `Setpoint`.\n2. **Deploy.** The node badge shows `running :4840`.\n3. Click **Update Temperature** to push a value into the server.\n4. The right group reports values **written by clients**.\n\n## Connect a client to this server\nFrom any OPC-UA client (incl. the *Client Quickstart* example) set the endpoint to:\n```\nopc.tcp://localhost:4840/UA/NodeRED\n```\n- Use `localhost` only if the client runs on the **same machine** as this server;\n  otherwise use this machine's **hostname or IP** (and ensure the port is reachable).\n- Security None / Anonymous matches the defaults here.\n- A wrong URL/port/path makes the client show a red **error** status.\n\n## Update / add variables\nSend `msg.topic = \"<name>\"`, `msg.payload = <value>`. Unknown names are created\non the fly (set `msg.dataType` to choose the type, default Double)."
+    },
+
+    {
+        "id": "sq_help",
+        "type": "comment",
+        "z": "sq_tab",
+        "name": "Clients connect to  opc.tcp://HOST:4840/UA/NodeRED  (HOST = localhost if on this machine, else this machine's hostname/IP). Wrong URL/port/path = red 'error' on the client.",
+        "info": "This node IS the server. Point a client's Endpoint at:\nopc.tcp://HOST:4840/UA/NodeRED\n- HOST = localhost if the client is on the same machine, otherwise this machine's hostname or IP\n- Security None / Anonymous by default",
+        "x": 360,
+        "y": 30,
+        "wires": []
+    },
+
+    {
+        "id": "sq_g_in",
+        "type": "group",
+        "z": "sq_tab",
+        "name": "FEED DATA IN  —  Node-RED → served variables",
+        "style": { "label": true, "label-position": "nw", "color": "#3b3b3b", "fill": "#c7e9c0", "fill-opacity": "0.4" },
+        "nodes": ["sq_in_c", "sq_tick", "sq_fn"],
+        "x": 74, "y": 70, "w": 472, "h": 132
+    },
+    {
+        "id": "sq_in_c", "type": "comment", "z": "sq_tab", "g": "sq_g_in",
+        "name": "Push a Temperature value the server exposes (click to send)",
+        "x": 270, "y": 110, "wires": []
+    },
+    {
+        "id": "sq_tick", "type": "inject", "z": "sq_tab", "g": "sq_g_in",
+        "name": "Update Temperature", "props": [{ "p": "payload" }], "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "", "payloadType": "date",
+        "x": 180, "y": 160, "wires": [["sq_fn"]]
+    },
+    {
+        "id": "sq_fn", "type": "function", "z": "sq_tab", "g": "sq_g_in",
+        "name": "Temperature 20–25", "func": "msg.topic = 'Temperature';\nmsg.payload = Math.round((20 + Math.random() * 5) * 100) / 100;\nreturn msg;",
+        "outputs": 1, "x": 400, "y": 160, "wires": [["sq_server"]]
+    },
+
+    {
+        "id": "sq_server",
+        "type": "opcua-server",
+        "z": "sq_tab",
+        "name": "Node-RED OPC-UA Server",
+        "port": 4840,
+        "resourcePath": "/UA/NodeRED",
+        "serverName": "Node-RED OPC-UA Server",
+        "folderName": "NodeRED",
+        "allowAnonymous": true,
+        "variables": [
+            { "name": "Temperature", "dataType": "Double", "value": "20" },
+            { "name": "Setpoint", "dataType": "Double", "value": "0" }
+        ],
+        "x": 400, "y": 270,
+        "wires": [["sq_out"]]
+    },
+
+    {
+        "id": "sq_g_out",
+        "type": "group",
+        "z": "sq_tab",
+        "name": "CLIENT WRITES OUT  —  react when a client changes a variable",
+        "style": { "label": true, "label-position": "nw", "color": "#3b3b3b", "fill": "#bdd7e7", "fill-opacity": "0.4" },
+        "nodes": ["sq_out_c", "sq_out"],
+        "x": 74, "y": 360, "w": 472, "h": 132
+    },
+    {
+        "id": "sq_out_c", "type": "comment", "z": "sq_tab", "g": "sq_g_out",
+        "name": "Emitted on every client write: {topic, payload, nodeId, source}",
+        "x": 280, "y": 400, "wires": []
+    },
+    {
+        "id": "sq_out", "type": "debug", "z": "sq_tab", "g": "sq_g_out",
+        "name": "client wrote", "active": true, "complete": "true", "targetType": "full",
+        "x": 250, "y": 450, "wires": []
+    }
+]

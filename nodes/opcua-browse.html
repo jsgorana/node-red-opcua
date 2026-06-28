@@ -1,0 +1,46 @@
+<script type="text/javascript">
+    RED.nodes.registerType("opcua-browse", {
+        category: "OPC-UA",
+        color: "#4a90d9",
+        defaults: {
+            name: { value: "" },
+            endpoint: { value: "", type: "opcua-endpoint", required: true },
+            nodeId: { value: "RootFolder" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "font-awesome/fa-sitemap",
+        label: function () {
+            return this.name || (this.nodeId ? "browse " + this.nodeId : "opcua-browse");
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="opcua-browse">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-endpoint"><i class="fa fa-server"></i> Endpoint</label>
+        <input type="text" id="node-input-endpoint">
+    </div>
+    <div class="form-row">
+        <label for="node-input-nodeId"><i class="fa fa-hashtag"></i> Node ID</label>
+        <input type="text" id="node-input-nodeId" placeholder="RootFolder">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="opcua-browse">
+    <p>Browses the children of an OPC-UA node and returns the references.</p>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt class="optional">nodeId <span class="property-type">string</span></dt>
+        <dd>Overrides the configured starting Node ID (default <code>RootFolder</code>).</dd>
+    </dl>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">array</span></dt>
+        <dd>Array of references: <code>{ nodeId, browseName, displayName, nodeClass, typeDefinition }</code>.</dd>
+    </dl>
+</script>

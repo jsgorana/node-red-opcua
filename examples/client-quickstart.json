@@ -1,0 +1,146 @@
+[
+    {
+        "id": "cq_tab",
+        "type": "tab",
+        "label": "OPC-UA · Client Quickstart",
+        "disabled": false,
+        "info": "# OPC-UA Client Quickstart\n\nRead, write, browse and subscribe against an OPC-UA server.\n\n## Set up the Endpoint first\n1. Double-click any OPC-UA node → open the **Endpoint** config (pencil icon).\n2. **URL**: `opc.tcp://HOST:PORT[/path]`, e.g. `opc.tcp://localhost:4840`.\n   - Use `localhost` only if the server runs on the **same machine** as Node-RED.\n   - Otherwise use the server's **hostname or IP address**. (If Node-RED runs in a\n     container/VM, `localhost` points at that container — use the server's reachable address.)\n3. **Security / Authentication** must match the server (default: None / Anonymous).\n   For Sign/SignAndEncrypt, see the endpoint node's help for certificate trust.\n4. **Deploy**, then click the inject buttons and watch the **Debug** sidebar.\n\n> If the endpoint is wrong, the nodes show a red **error** status and read/write\n> time out. Fix the URL/security and redeploy.\n\nEach coloured group is one independent pattern — use what you need."
+    },
+
+    {
+        "id": "cq_help",
+        "type": "comment",
+        "z": "cq_tab",
+        "name": "⚠ Configure the Endpoint first — opc.tcp://HOST:PORT  (HOST = localhost only if the server is on this machine, else its hostname/IP). Wrong endpoint = red 'error' on nodes.",
+        "info": "Open any OPC-UA node and edit its Endpoint config:\n- URL: opc.tcp://HOST:PORT[/path]\n- HOST = localhost if the server runs on the same machine as Node-RED; otherwise the server's hostname or IP\n- Security/Auth must match the server (default None/Anonymous)\nThen Deploy.",
+        "x": 320,
+        "y": 30,
+        "wires": []
+    },
+
+    {
+        "id": "cq_g_read",
+        "type": "group",
+        "z": "cq_tab",
+        "name": "READ  —  get a value on demand",
+        "style": { "label": true, "label-position": "nw", "color": "#3b3b3b", "fill": "#bdd7e7", "fill-opacity": "0.4" },
+        "nodes": ["cq_read_c", "cq_read_in", "cq_read", "cq_read_dbg"],
+        "x": 74, "y": 70, "w": 762, "h": 132
+    },
+    {
+        "id": "cq_read_c", "type": "comment", "z": "cq_tab", "g": "cq_g_read",
+        "name": "Inject → opcua-read → debug. Edit the node's Node ID (e.g. ns=1;s=Temperature).",
+        "x": 340, "y": 110, "wires": []
+    },
+    {
+        "id": "cq_read_in", "type": "inject", "z": "cq_tab", "g": "cq_g_read",
+        "name": "Read", "props": [{ "p": "payload" }], "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "", "payloadType": "date",
+        "x": 170, "y": 160, "wires": [["cq_read"]]
+    },
+    {
+        "id": "cq_read", "type": "opcua-read", "z": "cq_tab", "g": "cq_g_read",
+        "name": "", "endpoint": "cq_endpoint", "nodeId": "ns=1;s=Temperature",
+        "x": 410, "y": 160, "wires": [["cq_read_dbg"]]
+    },
+    {
+        "id": "cq_read_dbg", "type": "debug", "z": "cq_tab", "g": "cq_g_read",
+        "name": "value", "active": true, "complete": "payload", "targetType": "msg",
+        "x": 650, "y": 160, "wires": []
+    },
+
+    {
+        "id": "cq_g_write",
+        "type": "group",
+        "z": "cq_tab",
+        "name": "WRITE  —  send a value (msg.payload), type set on the node",
+        "style": { "label": true, "label-position": "nw", "color": "#3b3b3b", "fill": "#c7e9c0", "fill-opacity": "0.4" },
+        "nodes": ["cq_write_c", "cq_write_in", "cq_write", "cq_write_dbg"],
+        "x": 74, "y": 222, "w": 762, "h": 132
+    },
+    {
+        "id": "cq_write_c", "type": "comment", "z": "cq_tab", "g": "cq_g_write",
+        "name": "Inject payload 42.5 → opcua-write (Double) → debug shows the write status code.",
+        "x": 350, "y": 262, "wires": []
+    },
+    {
+        "id": "cq_write_in", "type": "inject", "z": "cq_tab", "g": "cq_g_write",
+        "name": "Write 42.5", "props": [{ "p": "payload" }], "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "42.5", "payloadType": "num",
+        "x": 180, "y": 312, "wires": [["cq_write"]]
+    },
+    {
+        "id": "cq_write", "type": "opcua-write", "z": "cq_tab", "g": "cq_g_write",
+        "name": "", "endpoint": "cq_endpoint", "nodeId": "ns=1;s=Setpoint", "dataType": "Double",
+        "x": 410, "y": 312, "wires": [["cq_write_dbg"]]
+    },
+    {
+        "id": "cq_write_dbg", "type": "debug", "z": "cq_tab", "g": "cq_g_write",
+        "name": "status", "active": true, "complete": "statusCode", "targetType": "msg",
+        "x": 650, "y": 312, "wires": []
+    },
+
+    {
+        "id": "cq_g_browse",
+        "type": "group",
+        "z": "cq_tab",
+        "name": "BROWSE  —  discover the address space",
+        "style": { "label": true, "label-position": "nw", "color": "#3b3b3b", "fill": "#fdd0a2", "fill-opacity": "0.4" },
+        "nodes": ["cq_browse_c", "cq_browse_in", "cq_browse", "cq_browse_dbg"],
+        "x": 74, "y": 374, "w": 762, "h": 132
+    },
+    {
+        "id": "cq_browse_c", "type": "comment", "z": "cq_tab", "g": "cq_g_browse",
+        "name": "Returns an array of child references. Start at ObjectsFolder, then drill into a Node ID.",
+        "x": 360, "y": 414, "wires": []
+    },
+    {
+        "id": "cq_browse_in", "type": "inject", "z": "cq_tab", "g": "cq_g_browse",
+        "name": "Browse", "props": [{ "p": "payload" }], "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "", "payloadType": "date",
+        "x": 170, "y": 464, "wires": [["cq_browse"]]
+    },
+    {
+        "id": "cq_browse", "type": "opcua-browse", "z": "cq_tab", "g": "cq_g_browse",
+        "name": "", "endpoint": "cq_endpoint", "nodeId": "ObjectsFolder",
+        "x": 410, "y": 464, "wires": [["cq_browse_dbg"]]
+    },
+    {
+        "id": "cq_browse_dbg", "type": "debug", "z": "cq_tab", "g": "cq_g_browse",
+        "name": "references", "active": true, "complete": "payload", "targetType": "msg",
+        "x": 660, "y": 464, "wires": []
+    },
+
+    {
+        "id": "cq_g_sub",
+        "type": "group",
+        "z": "cq_tab",
+        "name": "SUBSCRIBE  —  stream value changes (no input needed)",
+        "style": { "label": true, "label-position": "nw", "color": "#3b3b3b", "fill": "#d6c9f1", "fill-opacity": "0.4" },
+        "nodes": ["cq_sub_c", "cq_sub", "cq_sub_dbg"],
+        "x": 74, "y": 526, "w": 762, "h": 132
+    },
+    {
+        "id": "cq_sub_c", "type": "comment", "z": "cq_tab", "g": "cq_g_sub",
+        "name": "Arms automatically on deploy and re-arms after a reconnect. Emits on every change.",
+        "x": 350, "y": 566, "wires": []
+    },
+    {
+        "id": "cq_sub", "type": "opcua-subscribe", "z": "cq_tab", "g": "cq_g_sub",
+        "name": "", "endpoint": "cq_endpoint", "nodeId": "ns=1;s=Temperature",
+        "samplingInterval": 1000, "publishingInterval": 1000,
+        "x": 200, "y": 616, "wires": [["cq_sub_dbg"]]
+    },
+    {
+        "id": "cq_sub_dbg", "type": "debug", "z": "cq_tab", "g": "cq_g_sub",
+        "name": "live value", "active": true, "complete": "payload", "targetType": "msg",
+        "x": 470, "y": 616, "wires": []
+    },
+
+    {
+        "id": "cq_endpoint",
+        "type": "opcua-endpoint",
+        "name": "OPC-UA Server",
+        "endpointUrl": "opc.tcp://localhost:4840",
+        "securityMode": "None",
+        "securityPolicy": "None",
+        "authType": "anonymous"
+    }
+]

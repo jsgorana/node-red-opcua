@@ -1,0 +1,197 @@
+[
+    {
+        "id": "demo_tab",
+        "type": "tab",
+        "label": "OPC-UA · Server + Client Demo",
+        "disabled": false,
+        "info": "# OPC-UA Server + Client — self-contained demo\n\nThis flow runs **both** an OPC-UA server and a client in the same Node-RED, so it\nworks the moment you **Deploy** — no external server needed.\n\n## How it works\n1. **Server** (orange): click **Simulate sensor** to push a random temperature\n   into the `Temperature` variable the server exposes.\n2. **Client** (blue): reads + subscribes to that same server on\n   `opc.tcp://localhost:4840/UA/NodeRED`, and can write the `Setpoint`.\n3. When the client writes `Setpoint`, the **server's output** reports it.\n\n## Try it\n- Click **Deploy**, then open the **Debug** sidebar.\n- Click **Simulate sensor** a few times — *Live temperature* (subscription) and\n  *Read once* both reflect the new value.\n- Click **Write Setpoint = 50** and see the server report the client write.\n\n## Endpoint note\nThe client Endpoint here is `opc.tcp://localhost:4840/UA/NodeRED`, which works because\nthe server and client run in the **same** Node-RED. To connect to a server elsewhere,\nuse that server's **hostname or IP** instead of `localhost` (and make sure the port is\nreachable). A wrong endpoint makes the client nodes show a red **error** status."
+    },
+
+    {
+        "id": "demo_help",
+        "type": "comment",
+        "z": "demo_tab",
+        "name": "Self-contained: the client talks to the server on opc.tcp://localhost:4840/UA/NodeRED. Click 'Simulate sensor' to drive it. (For a remote server, use its hostname/IP.)",
+        "info": "Client Endpoint = opc.tcp://localhost:4840/UA/NodeRED.\nlocalhost works because server+client share this Node-RED.\nTo connect to a server elsewhere, use that server's hostname or IP.\nWrong endpoint = red 'error' on client nodes.",
+        "x": 360,
+        "y": 30,
+        "wires": []
+    },
+
+    {
+        "id": "demo_g_server",
+        "type": "group",
+        "z": "demo_tab",
+        "name": "1 · OPC-UA SERVER  —  exposes Node-RED data",
+        "style": { "label": true, "label-position": "nw", "color": "#3b3b3b", "fill": "#fdd0a2", "fill-opacity": "0.4" },
+        "nodes": ["demo_s_note", "demo_s_tick", "demo_s_fn", "demo_s_server", "demo_s_dbg"],
+        "x": 74, "y": 60, "w": 752, "h": 212
+    },
+    {
+        "id": "demo_s_note",
+        "type": "comment",
+        "z": "demo_tab",
+        "g": "demo_g_server",
+        "name": "Click 'Simulate sensor' to push a value into the served 'Temperature' variable",
+        "x": 360, "y": 100, "wires": []
+    },
+    {
+        "id": "demo_s_tick",
+        "type": "inject",
+        "z": "demo_tab",
+        "g": "demo_g_server",
+        "name": "Simulate sensor",
+        "props": [{ "p": "payload" }], "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "", "payloadType": "date",
+        "x": 180, "y": 150,
+        "wires": [["demo_s_fn"]]
+    },
+    {
+        "id": "demo_s_fn",
+        "type": "function",
+        "z": "demo_tab",
+        "g": "demo_g_server",
+        "name": "Random 20–25 °C",
+        "func": "msg.topic = 'Temperature';\nmsg.payload = Math.round((20 + Math.random() * 5) * 100) / 100;\nreturn msg;",
+        "outputs": 1,
+        "x": 410, "y": 150,
+        "wires": [["demo_s_server"]]
+    },
+    {
+        "id": "demo_s_server",
+        "type": "opcua-server",
+        "z": "demo_tab",
+        "g": "demo_g_server",
+        "name": "Node-RED OPC-UA Server",
+        "port": 4840,
+        "resourcePath": "/UA/NodeRED",
+        "serverName": "Node-RED OPC-UA Server",
+        "folderName": "NodeRED",
+        "allowAnonymous": true,
+        "variables": [
+            { "name": "Temperature", "dataType": "Double", "value": "20" },
+            { "name": "Setpoint", "dataType": "Double", "value": "0" }
+        ],
+        "x": 640, "y": 150,
+        "wires": [["demo_s_dbg"]]
+    },
+    {
+        "id": "demo_s_dbg",
+        "type": "debug",
+        "z": "demo_tab",
+        "g": "demo_g_server",
+        "name": "Client wrote →",
+        "active": true, "complete": "true", "targetType": "full",
+        "x": 650, "y": 220, "wires": []
+    },
+
+    {
+        "id": "demo_g_client",
+        "type": "group",
+        "z": "demo_tab",
+        "name": "2 · OPC-UA CLIENT  —  reads from the server above",
+        "style": { "label": true, "label-position": "nw", "color": "#3b3b3b", "fill": "#bdd7e7", "fill-opacity": "0.4" },
+        "nodes": ["demo_c_note", "demo_c_read_tick", "demo_c_read", "demo_c_read_dbg", "demo_c_sub", "demo_c_sub_dbg", "demo_c_write_tick", "demo_c_write", "demo_c_write_dbg"],
+        "x": 74, "y": 300, "w": 752, "h": 300
+    },
+    {
+        "id": "demo_c_note",
+        "type": "comment",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "Connects to opc.tcp://localhost:4840/UA/NodeRED (the server above)",
+        "x": 290, "y": 340, "wires": []
+    },
+    {
+        "id": "demo_c_read_tick",
+        "type": "inject",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "Read once",
+        "props": [{ "p": "payload" }], "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "", "payloadType": "date",
+        "x": 180, "y": 390,
+        "wires": [["demo_c_read"]]
+    },
+    {
+        "id": "demo_c_read",
+        "type": "opcua-read",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "read Temperature",
+        "endpoint": "demo_endpoint",
+        "nodeId": "ns=1;s=Temperature",
+        "x": 410, "y": 390,
+        "wires": [["demo_c_read_dbg"]]
+    },
+    {
+        "id": "demo_c_read_dbg",
+        "type": "debug",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "Read value",
+        "active": true, "complete": "payload", "targetType": "msg",
+        "x": 650, "y": 390, "wires": []
+    },
+    {
+        "id": "demo_c_sub",
+        "type": "opcua-subscribe",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "subscribe Temperature",
+        "endpoint": "demo_endpoint",
+        "nodeId": "ns=1;s=Temperature",
+        "samplingInterval": 1000,
+        "publishingInterval": 1000,
+        "x": 200, "y": 460,
+        "wires": [["demo_c_sub_dbg"]]
+    },
+    {
+        "id": "demo_c_sub_dbg",
+        "type": "debug",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "Live temperature",
+        "active": true, "complete": "payload", "targetType": "msg",
+        "x": 470, "y": 460, "wires": []
+    },
+    {
+        "id": "demo_c_write_tick",
+        "type": "inject",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "Write Setpoint = 50",
+        "props": [{ "p": "payload" }], "repeat": "", "crontab": "", "once": false, "onceDelay": 0.1, "topic": "", "payload": "50", "payloadType": "num",
+        "x": 190, "y": 540,
+        "wires": [["demo_c_write"]]
+    },
+    {
+        "id": "demo_c_write",
+        "type": "opcua-write",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "write Setpoint",
+        "endpoint": "demo_endpoint",
+        "nodeId": "ns=1;s=Setpoint",
+        "dataType": "Double",
+        "x": 410, "y": 540,
+        "wires": [["demo_c_write_dbg"]]
+    },
+    {
+        "id": "demo_c_write_dbg",
+        "type": "debug",
+        "z": "demo_tab",
+        "g": "demo_g_client",
+        "name": "Write status",
+        "active": true, "complete": "statusCode", "targetType": "msg",
+        "x": 650, "y": 540, "wires": []
+    },
+
+    {
+        "id": "demo_endpoint",
+        "type": "opcua-endpoint",
+        "name": "Local Node-RED Server",
+        "endpointUrl": "opc.tcp://localhost:4840/UA/NodeRED",
+        "securityMode": "None",
+        "securityPolicy": "None",
+        "authType": "anonymous"
+    }
+]

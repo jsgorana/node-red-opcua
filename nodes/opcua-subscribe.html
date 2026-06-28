@@ -1,0 +1,84 @@
+<script type="text/javascript">
+    RED.nodes.registerType("opcua-subscribe", {
+        category: "OPC-UA",
+        color: "#4a90d9",
+        defaults: {
+            name: { value: "" },
+            endpoint: { value: "", type: "opcua-endpoint", required: true },
+            nodeId: { value: "", required: true },
+            samplingInterval: { value: 1000, validate: RED.validators.number() },
+            publishingInterval: { value: 1000, validate: RED.validators.number() },
+            queueSize: { value: 10, validate: RED.validators.number() },
+            trigger: { value: "StatusValue" },
+            deadbandType: { value: "None" },
+            deadbandValue: { value: 0, validate: RED.validators.number() }
+        },
+        inputs: 0,
+        outputs: 1,
+        icon: "font-awesome/fa-bell",
+        label: function () {
+            return this.name || (this.nodeId ? "subscribe " + this.nodeId : "opcua-subscribe");
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="opcua-subscribe">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-endpoint"><i class="fa fa-server"></i> Endpoint</label>
+        <input type="text" id="node-input-endpoint">
+    </div>
+    <div class="form-row">
+        <label for="node-input-nodeId"><i class="fa fa-hashtag"></i> Node ID</label>
+        <input type="text" id="node-input-nodeId" placeholder="ns=1;s=Temperature">
+    </div>
+    <div class="form-row">
+        <label for="node-input-samplingInterval"><i class="fa fa-clock-o"></i> Sampling (ms)</label>
+        <input type="number" id="node-input-samplingInterval" placeholder="1000">
+    </div>
+    <div class="form-row">
+        <label for="node-input-publishingInterval"><i class="fa fa-clock-o"></i> Publishing (ms)</label>
+        <input type="number" id="node-input-publishingInterval" placeholder="1000">
+    </div>
+    <div class="form-row">
+        <label for="node-input-queueSize"><i class="fa fa-list-ol"></i> Queue Size</label>
+        <input type="number" id="node-input-queueSize" placeholder="10">
+    </div>
+    <div class="form-row">
+        <label for="node-input-trigger"><i class="fa fa-bolt"></i> Trigger</label>
+        <select id="node-input-trigger">
+            <option value="Status">Status</option>
+            <option value="StatusValue">Status + value</option>
+            <option value="StatusValueTimestamp">Status + value + timestamp</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-deadbandType"><i class="fa fa-filter"></i> Deadband</label>
+        <select id="node-input-deadbandType">
+            <option value="None">None</option>
+            <option value="Absolute">Absolute</option>
+            <option value="Percent">Percent</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-deadbandValue"><i class="fa fa-sliders"></i> Deadband Value</label>
+        <input type="number" id="node-input-deadbandValue" placeholder="0">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="opcua-subscribe">
+    <p>Subscribes to value changes of an OPC-UA node and emits a message on each change.
+    Requires no input — it arms automatically when the endpoint connects and re-arms
+    after a reconnect. Subscribe nodes sharing the same endpoint use one OPC-UA
+    subscription with separate monitored items.</p>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload</dt><dd>The changed value.</dd>
+        <dt>nodeId <span class="property-type">string</span></dt><dd>The monitored Node ID.</dd>
+        <dt>statusCode <span class="property-type">string</span></dt><dd>OPC-UA status code.</dd>
+        <dt>sourceTimestamp <span class="property-type">date</span></dt><dd>Server source timestamp.</dd>
+    </dl>
+</script>

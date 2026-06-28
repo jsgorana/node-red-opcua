@@ -1,0 +1,63 @@
+<script type="text/javascript">
+    RED.nodes.registerType("opcua-write", {
+        category: "OPC-UA",
+        color: "#4a90d9",
+        defaults: {
+            name: { value: "" },
+            endpoint: { value: "", type: "opcua-endpoint", required: true },
+            nodeId: { value: "" },
+            dataType: { value: "Double" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "font-awesome/fa-upload",
+        label: function () {
+            return this.name || (this.nodeId ? "write " + this.nodeId : "opcua-write");
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="opcua-write">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-endpoint"><i class="fa fa-server"></i> Endpoint</label>
+        <input type="text" id="node-input-endpoint">
+    </div>
+    <div class="form-row">
+        <label for="node-input-nodeId"><i class="fa fa-hashtag"></i> Node ID</label>
+        <input type="text" id="node-input-nodeId" placeholder="ns=1;s=Temperature">
+    </div>
+    <div class="form-row">
+        <label for="node-input-dataType"><i class="fa fa-cube"></i> Data Type</label>
+        <select id="node-input-dataType">
+            <option value="Boolean">Boolean</option>
+            <option value="SByte">SByte</option>
+            <option value="Byte">Byte</option>
+            <option value="Int16">Int16</option>
+            <option value="UInt16">UInt16</option>
+            <option value="Int32">Int32</option>
+            <option value="UInt32">UInt32</option>
+            <option value="Float">Float</option>
+            <option value="Double">Double</option>
+            <option value="String">String</option>
+            <option value="DateTime">DateTime</option>
+        </select>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="opcua-write">
+    <p>Writes <code>msg.payload</code> to the Value attribute of an OPC-UA node.</p>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload</dt><dd>The value to write.</dd>
+        <dt class="optional">nodeId <span class="property-type">string</span></dt><dd>Overrides the configured Node ID.</dd>
+        <dt class="optional">dataType <span class="property-type">string</span></dt><dd>Overrides the configured data type.</dd>
+    </dl>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>statusCode <span class="property-type">string</span></dt><dd>OPC-UA write status code.</dd>
+    </dl>
+</script>

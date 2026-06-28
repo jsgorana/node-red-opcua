@@ -1,0 +1,47 @@
+<script type="text/javascript">
+    RED.nodes.registerType("opcua-read", {
+        category: "OPC-UA",
+        color: "#4a90d9",
+        defaults: {
+            name: { value: "" },
+            endpoint: { value: "", type: "opcua-endpoint", required: true },
+            nodeId: { value: "" }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "font-awesome/fa-download",
+        label: function () {
+            return this.name || (this.nodeId ? "read " + this.nodeId : "opcua-read");
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="opcua-read">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-endpoint"><i class="fa fa-server"></i> Endpoint</label>
+        <input type="text" id="node-input-endpoint">
+    </div>
+    <div class="form-row">
+        <label for="node-input-nodeId"><i class="fa fa-hashtag"></i> Node ID</label>
+        <input type="text" id="node-input-nodeId" placeholder="ns=1;s=Temperature">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="opcua-read">
+    <p>Reads the Value attribute of an OPC-UA node.</p>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt class="optional">nodeId <span class="property-type">string</span></dt>
+        <dd>Overrides the configured Node ID for this message.</dd>
+    </dl>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>payload</dt><dd>The value read from the server.</dd>
+        <dt>statusCode <span class="property-type">string</span></dt><dd>OPC-UA status code.</dd>
+        <dt>nodeId <span class="property-type">string</span></dt><dd>The Node ID that was read.</dd>
+    </dl>
+</script>
