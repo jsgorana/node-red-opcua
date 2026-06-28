@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.1.0 - Unreleased
+## 0.1.0 - 2026-06-28
 
 Initial pre-release of `@jsgorana/node-red-opcua`.
 
